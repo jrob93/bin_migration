@@ -12,6 +12,7 @@ import matplotlib.pyplot as pyplot
 import os
 from natsort import natsorted, ns
 import subprocess
+import matplotlib
 import matplotlib.gridspec as gridspec
 import py_func as pf
 import pandas as pd
@@ -49,14 +50,14 @@ print dirs
 
 for run in dirs:
 
-    subprocess.Popen(["mkdir","../{}/{}_figs".format(run,os.path.basename(__file__).split('.')[0])]) # make directory to store plots for that run
+    subprocess.Popen(["mkdir","../analysis_dirs/{}/{}_figs".format(run,os.path.basename(__file__).split('.')[0])]) # make directory to store plots for that run
 
     #---------------------------------------------------------------------------
     # Load the planet orbital elements data
     for i in range(1,N_planet+1):
         _i=i-1
         print _i
-        planet_record_file="../{}/planet_{:03d}.txt".format(run,i)
+        planet_record_file="../analysis_dirs/{}/planet_{:03d}.txt".format(run,i)
         filename='{}'.format(planet_record_file)
         print filename
         try:
@@ -70,7 +71,7 @@ for run in dirs:
 
         if _i==0: # initialise data array
 
-            with open("../{}/0.dump".format(run)) as f:
+            with open("../analysis_dirs/{}/0.dump".format(run)) as f:
                 _dat = [line.rstrip() for line in f]
             header = _dat[0] # header line
             print header
@@ -373,8 +374,19 @@ for run in dirs:
         #---------------------------------------------------------------------------
         # Plot stuff for this timestep
         l1=ax5.axvline(t,0,30,color='k',alpha=0.5) # line to track simulation time
-        s1_1=ax1.scatter(a_hel_single,e_hel_single,color='k',alpha=0.5,marker='^',edgecolors='none')
-        s2_1=ax2.scatter(a_hel_single,I_hel_single,color='k',alpha=0.5,marker='^',edgecolors='none')
+
+        df_single=pd.DataFrame(numpy.array([a_hel_single,e_hel_single,I_hel_single]).T,columns=['a_hel(AU)','e_hel','I_hel(d)'])
+        print len(df_single)
+        df_single_CC=CC_bounds(df_single)
+        df_single=pd.concat([df_single,df_single_CC]).drop_duplicates(keep=False)
+        print len(df_single),len(df_single_CC)
+
+        s1_1=ax1.scatter(df_single['a_hel(AU)'],df_single['e_hel'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='None')
+        s2_1=ax2.scatter(df_single['a_hel(AU)'],df_single['I_hel(d)'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='None')
+        print 'There are {} cold classical singles formed'.format(len(df_single_CC))
+        s1_3=ax1.scatter(df_single_CC['a_hel(AU)'],df_single_CC['e_hel'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='k')
+        s2_3=ax2.scatter(df_single_CC['a_hel(AU)'],df_single_CC['I_hel(d)'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='k')
+
 
         # tight binaries
         df_o=df_orb_all[df_orb_all['a/r_hill']<wide_cut]
@@ -441,24 +453,8 @@ for run in dirs:
 ax3.legend()
 
 # save and clear the figure for the next timestep
-save_path = '../{}/{}_figs/{}_{}_{:07d}.png'.format(run,os.path.basename(__file__).split('.')[0],os.path.basename(__file__).split('.')[0],run,int(fi.split('/')[-1].split('.')[0]))
+save_path = '../analysis_dirs/{}/{}_figs/{}_{}_{:07d}.png'.format(run,os.path.basename(__file__).split('.')[0],os.path.basename(__file__).split('.')[0],run,int(fi.split('/')[-1].split('.')[0]))
 print save_path
 pyplot.savefig(save_path, bbox_inches='tight')
-# pyplot.show()
-# pyplot.close()
-# break
-# # Clear the plots
-# for ax_obj in [l1,s1_0,s2_0,s1_1,s2_1,s3,s4]:
-#     ax_obj.remove()
-# if len(df_hel)>0:
-#     s1_2.remove()
-#     s2_2.remove()
-# if len(df_hel_single)>0:
-#     s1_3.remove()
-#     s2_3.remove()
-#---------------------------------------------------------------------------
-
-# break
-
 pyplot.show()
 # pyplot.close()
