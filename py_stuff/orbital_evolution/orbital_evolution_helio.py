@@ -33,7 +33,7 @@ from matplotlib.patches import ConnectionPatch
 # # run='200_dump'
 # run='prone_121'
 
-path='/Users/jrobinson/bin_migration/py_stuff'
+path='/Users/jrobinson/bin_migration/py_stuff/analysis_dirs'
 # run='prone_1239'
 dirs=next(os.walk(path))[1]
 dirs = [d for d in dirs if 'prone' in d]

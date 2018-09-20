@@ -53,7 +53,7 @@ for run in dirs: # go forwards through list
     # if (int(run.split('_')[-1])<1435):# or (int(run.split('_')[-1])>1380):
     #     continue
 
-    subprocess.Popen(["mkdir","../{}_analysis".format(run)]) # make directory to store files for run
+    subprocess.Popen(["mkdir","../analysis_dirs/{}_analysis".format(run)]) # make directory to store files for run
 
     # Load the files
     run_path='{}/data/{}'.format(path,run)
@@ -67,8 +67,8 @@ for run in dirs: # go forwards through list
         files=[files[0],files[-1]] # calculate only first and last
     #---------------------------------------------------------------------------
 
-    primary_fname='../{}_analysis/{}_primary_list.txt'.format(run,run)
-    single_fname='../{}_analysis/{}_single_list.txt'.format(run,run)
+    primary_fname='../analysis_dirs/{}_analysis/{}_primary_list.txt'.format(run,run)
+    single_fname='../analysis_dirs/{}_analysis/{}_single_list.txt'.format(run,run)
 
     # time1 = time.time()
 
@@ -88,7 +88,7 @@ for run in dirs: # go forwards through list
         # copy first and last data files for future analysis
         if _i==0 or _i==(len(files)-1):
             print "copy {}".format(filename)
-            os.system ("cp -v {} ../{}_analysis/{}".format(filename, run, files[_i]))
+            os.system ("cp -v {} ../analysis_dirs/{}_analysis/{}".format(filename, run, files[_i]))
 
         # data format:
         # ii,a,e,inc,omega,Omega,f,x-x0,y-y0,z-z0,vx-vx0,vy-vy0,vz-vz0
@@ -107,7 +107,7 @@ for run in dirs: # go forwards through list
                 j=i+1
 
                 if short==1:
-                    binary_record_file="../{}_analysis/binary_{:03d}_{:03d}_short.txt".format(run,i,j)
+                    binary_record_file="../analysis_dirs/{}_analysis/binary_{:03d}_{:03d}_short.txt".format(run,i,j)
                 else:
                     binary_record_file="{}/analysis/{}_analysis/binary_{:03d}_{:03d}.txt".format(path,run,i,j)
 

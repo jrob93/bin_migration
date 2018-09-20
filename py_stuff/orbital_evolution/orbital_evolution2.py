@@ -27,12 +27,12 @@ import pandas as pd
 # run='binSim'
 # # run='binSim_20_0'
 
-path='/Users/jrobinson/bin_migration/py_stuff'
+path='/Users/jrobinson/bin_migration/py_stuff/analysis_dirs'
 dirs=next(os.walk(path))[1]
 dirs = [d for d in dirs if 'prone' in d]
 
-#dirs=['prone_1335_timesteptest0.75_analysis']
-dirs=['prone_1000_timesteptest0.25','prone_1000_timesteptest0.75']
+dirs=['prone_1335_timesteptest0.75_analysis']
+# dirs=['prone_1000_timesteptest0.25','prone_1000_timesteptest0.75']
 
 # subprocess.Popen(["mkdir","../{}_analysis".format(run)]) # make directory to store files for run
 

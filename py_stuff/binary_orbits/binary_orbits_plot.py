@@ -49,8 +49,8 @@ for run in dirs:
     ax3.set_ylabel('I (degrees)')
     # ax4.set_ylabel('a_hel/q_hel (primary)')
 
-    primary_fname='../{}_analysis/{}_primary_list.txt'.format(run,run)
-    single_fname='../{}_analysis/{}_single_list.txt'.format(run,run)
+    primary_fname='../analysis_dirs/{}_analysis/{}_primary_list.txt'.format(run,run)
+    single_fname='../analysis_dirs/{}_analysis/{}_single_list.txt'.format(run,run)
 
     primary_list=numpy.loadtxt(primary_fname).astype(int)
     single_list=numpy.loadtxt(single_fname).astype(int)
@@ -67,7 +67,7 @@ for run in dirs:
     fig.suptitle('run: {}, binary pair: {}, {}'.format(run,i,j))
 
     # Load the binary data
-    binary_record_file="../{}_analysis/binary_{:03d}_{:03d}.txt".format(run,i,j)
+    binary_record_file="../analysis_dirs/{}_analysis/binary_{:03d}_{:03d}.txt".format(run,i,j)
     filename='{}'.format(binary_record_file)
     print filename
     with open(filename) as f:
@@ -87,7 +87,7 @@ for run in dirs:
     e_hel=dat[:,8]
 
     # Load the planet heliocentric data
-    planet_record_file="../{}_analysis/planet_{:03d}.txt".format(run,N_planet)
+    planet_record_file="../analysis_dirs/{}_analysis/planet_{:03d}.txt".format(run,N_planet)
     filename='{}'.format(planet_record_file)
     print filename
     with open(filename) as f:
@@ -149,7 +149,7 @@ for run in dirs:
     _ax1.plot(time,numpy.array(a_bin)/r_hill_mutual, color='k',alpha=0.5)
     _ax1.set_ylabel('a_bin/r_hill_mutual')
 
-    save_path = '../{}_analysis/{}_{}_{:03d}_{:03d}.png'.format(run,os.path.basename(__file__).split('.')[0],run,i,j)
+    save_path = '../analysis_dirs/{}_analysis/{}_{}_{:03d}_{:03d}.png'.format(run,os.path.basename(__file__).split('.')[0],run,i,j)
     print save_path
     pyplot.savefig(save_path, bbox_inches='tight')
     # pyplot.show()

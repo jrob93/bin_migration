@@ -17,7 +17,7 @@ print df_planet
 
 # path='/Users/jrobinson/bin_migration/'
 # run='prone_1020'
-path='/Users/jrobinson/bin_migration/py_stuff'
+path='/Users/jrobinson/bin_migration/py_stuff/analysis_dirs'
 dirs=next(os.walk(path))[1]
 dirs = [d for d in dirs if 'prone' in d]
 

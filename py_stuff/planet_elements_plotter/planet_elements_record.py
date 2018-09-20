@@ -47,7 +47,7 @@ for run in dirs:
     #     continue
 
     print run
-    subprocess.Popen(["mkdir","../{}_analysis".format(run)]) # make directory to store images
+    subprocess.Popen(["mkdir","../analysis_dirs/{}_analysis".format(run)]) # make directory to store images
 
     run_path='{}/{}'.format(path,run)
     files=next(os.walk(run_path))[2]
@@ -73,7 +73,7 @@ for run in dirs:
         # ii,a,e,inc,omega,Omega,f,x-x0,y-y0,z-z0,vx-vx0,vy-vy0,vz-vz0
 
         for j in range(1,N_planet+1):
-            planet_record_file="../{}_analysis/planet_{:03d}.txt".format(run,j)
+            planet_record_file="../analysis_dirs/{}_analysis/planet_{:03d}.txt".format(run,j)
             if i==0: # wipe file to avoid appending errors
                 with open(planet_record_file, 'w') as file:
                     file.write("{:e}\t{:e}\t{:e}\t{:e}\t{:e}\t{:e}\t{:e}\n".format(t,dat[j,1],dat[j,2],dat[j,3],dat[j,4],dat[j,5],dat[j,6]))
