@@ -17,6 +17,7 @@ import matplotlib.gridspec as gridspec
 import py_func as pf
 import pandas as pd
 import rebound
+from matplotlib.patches import Ellipse
 
 def CC_bounds(df_hel):
     df_hel=df_hel[(df_hel['a_hel(AU)']>a_min) & (df_hel['a_hel(AU)']<a_max)]
@@ -36,6 +37,7 @@ wide_cut=0.05 # a/r_hill, the normalised binary separation above which we consid
 CC_size=75 # marker size for crosses to denote the point is in the Cold Classical region
 s1=25 # marker size for tight binaries
 s2=90 # marker size for wide binaries
+e_bins=[0.0,0.1,0.3,1.0] # define the bins for eccentricty
 
 # load planet data for modern values of planet positions
 df_planet=pd.read_csv("../gen_planet_data.txt",sep="\t",index_col=0)
@@ -95,7 +97,8 @@ for run in dirs:
     fig.set_size_inches(15, 10)
     gs = gridspec.GridSpec(3, 2, height_ratios=[1,1,0.5])
     ax1 = pyplot.subplot(gs[0,0])
-    ax2 = pyplot.subplot(gs[1,0],sharex=ax1)
+    # ax2 = pyplot.subplot(gs[1,0],sharex=ax1)
+    ax2 = pyplot.subplot(gs[1,0])
     ax3 = pyplot.subplot(gs[0,1])
     ax4 = pyplot.subplot(gs[1,1],sharex=ax3)
     ax5 = pyplot.subplot(gs[2,:])
@@ -279,7 +282,7 @@ for run in dirs:
         df_orb_all['e_bin']=e_bin
         df_orb_all['I_bin(rad)']=I_bin
         df_orb_all['a/r_hill']=df_orb_all['a_bin(m)']/df_orb_all['r_hill(m)']
-        print df_orb_all
+        # print df_orb_all
         #---------------------------------------------------------------------------
         # define a dataframe to store the orbits for connecting start and end points of orbits
         df_orb=pd.DataFrame(numpy.array([numpy.array(a)/pf.AU,e,numpy.array(I)*(180.0/numpy.pi)]).T,columns=['a_hel(AU)','e_hel','I_hel(d)'])
@@ -387,6 +390,9 @@ for run in dirs:
         s1_3=ax1.scatter(df_single_CC['a_hel(AU)'],df_single_CC['e_hel'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='k')
         s2_3=ax2.scatter(df_single_CC['a_hel(AU)'],df_single_CC['I_hel(d)'],marker='^',facecolor=matplotlib.colors.colorConverter.to_rgba('black', alpha=0.5),edgecolor='k')
 
+        # find the bin numbers for eccentricities
+        e_bin_bin_num=pf.find_bin_num(numpy.array(df_orb_all['e_bin']),e_bins)
+        df_orb_all['e_bin_bin_num']=e_bin_bin_num
 
         # tight binaries
         df_o=df_orb_all[df_orb_all['a/r_hill']<wide_cut]
@@ -394,15 +400,34 @@ for run in dirs:
         df_o_CC=CC_bounds(df_o)
         df_o=pd.concat([df_o,df_o_CC]).drop_duplicates(keep=False)
         print len(df_o),len(df_o_CC)
-        s1_0=ax1.scatter(df_o['a_hel(AU)'],df_o['e_hel'],color=colours[col_i],s=s1)#,alpha=0.5)
-        s2_0=ax2.scatter(df_o['a_hel(AU)'],df_o['I_hel(d)'],color=colours[col_i],s=s1)#,alpha=0.5)
-        s3=ax3.scatter(numpy.array(df_o['a_bin(m)']),numpy.array(df_o['e_bin']),color=colours[col_i],s=s1,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
-        s4=ax4.scatter(numpy.array(df_o['a_bin(m)']),numpy.array(df_o['I_bin(d)']),color=colours[col_i],s=s1)#,alpha=0.5)
-        # tight binaries in cold classical region
-        s1_0=ax1.scatter(df_o_CC['a_hel(AU)'],df_o_CC['e_hel'],color=colours[col_i],s=s1,edgecolor='k')#,alpha=0.5)
-        s2_0=ax2.scatter(df_o_CC['a_hel(AU)'],df_o_CC['I_hel(d)'],color=colours[col_i],s=s1,edgecolor='k')#,alpha=0.5)
-        s3=ax3.scatter(numpy.array(df_o_CC['a_bin(m)']),numpy.array(df_o_CC['e_bin']),color=colours[col_i],s=s1,edgecolor='k')#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
-        s4=ax4.scatter(numpy.array(df_o_CC['a_bin(m)']),numpy.array(df_o_CC['I_bin(d)']),color=colours[col_i],s=s1,edgecolor='k')#,alpha=0.5)
+        for j in range(len(df_o)):
+            a_hel=float(df_o.iloc[j]['a_hel(AU)'])
+            e_hel=float(df_o.iloc[j]['e_hel'])
+            I_hel=float(df_o.iloc[j]['I_hel(d)'])
+            a_bin=float(df_o.iloc[j]['a_bin(m)'])
+            e_bin=float(df_o.iloc[j]['e_bin'])
+            I_bin=float(df_o.iloc[j]['I_bin(d)'])
+            p_num=int(df_o.iloc[j]['e_bin_bin_num'])+3
+
+            s1_0=ax1.scatter(a_hel,e_hel,color=colours[col_i],s=s1,marker=(p_num,1,0))#,alpha=0.5)
+            s2_0=ax2.scatter(a_hel,I_hel,color=colours[col_i],s=s1,marker=(p_num,1,0))#,alpha=0.5)
+            s3=ax3.scatter(a_bin,e_bin,color=colours[col_i],s=s1,marker=(p_num,1,0))#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
+            s4=ax4.scatter(a_bin,I_bin,color=colours[col_i],s=s1,marker=(p_num,1,0))#,alpha=0.5)
+
+        for j in range(len(df_o_CC)):
+            a_hel=float(df_o_CC.iloc[j]['a_hel(AU)'])
+            e_hel=float(df_o_CC.iloc[j]['e_hel'])
+            I_hel=float(df_o_CC.iloc[j]['I_hel(d)'])
+            a_bin=float(df_o_CC.iloc[j]['a_bin(m)'])
+            e_bin=float(df_o_CC.iloc[j]['e_bin'])
+            I_bin=float(df_o_CC.iloc[j]['I_bin(d)'])
+            p_num=int(df_o_CC.iloc[j]['e_bin_bin_num'])+3
+
+            # tight binaries in cold classical region
+            s1_0=ax1.scatter(a_hel,e_hel,color=colours[col_i],s=s1,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
+            s2_0=ax2.scatter(a_hel,I_hel,color=colours[col_i],s=s1,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
+            s3=ax3.scatter(a_bin,e_bin,color=colours[col_i],s=s1,marker=(p_num,1,0),edgecolor='k')#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
+            s4=ax4.scatter(a_bin,I_bin,color=colours[col_i],s=s1,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
 
         # wide binaries
         df_o=df_orb_all[df_orb_all['a/r_hill']>=wide_cut]
@@ -410,47 +435,148 @@ for run in dirs:
         df_o_CC=CC_bounds(df_o)
         df_o=pd.concat([df_o,df_o_CC]).drop_duplicates(keep=False)
         print len(df_o),len(df_o_CC)
-        s1_0=ax1.scatter(df_o['a_hel(AU)'],df_o['e_hel'],color=colours[col_i],s=s2)#,alpha=0.5)
-        s2_0=ax2.scatter(df_o['a_hel(AU)'],df_o['I_hel(d)'],color=colours[col_i],s=s2)#,alpha=0.5)
-        s3=ax3.scatter(numpy.array(df_o['a_bin(m)']),numpy.array(df_o['e_bin']),color=colours[col_i],s=s2)#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
-        s4=ax4.scatter(numpy.array(df_o['a_bin(m)']),numpy.array(df_o['I_bin(d)']),color=colours[col_i],s=s2)#,alpha=0.5)
-        # wide binaries in cold classical region
-        s1_0=ax1.scatter(df_o_CC['a_hel(AU)'],df_o_CC['e_hel'],color=colours[col_i],s=s2,edgecolor='k')#,alpha=0.5)
-        s2_0=ax2.scatter(df_o_CC['a_hel(AU)'],df_o_CC['I_hel(d)'],color=colours[col_i],s=s2,edgecolor='k')#,alpha=0.5)
-        s3=ax3.scatter(numpy.array(df_o_CC['a_bin(m)']),numpy.array(df_o_CC['e_bin']),color=colours[col_i],s=s2,edgecolor='k')#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
-        s4=ax4.scatter(numpy.array(df_o_CC['a_bin(m)']),numpy.array(df_o_CC['I_bin(d)']),color=colours[col_i],s=s2,edgecolor='k')#,alpha=0.5)
+        for j in range(len(df_o)):
+            a_hel=float(df_o.iloc[j]['a_hel(AU)'])
+            e_hel=float(df_o.iloc[j]['e_hel'])
+            I_hel=float(df_o.iloc[j]['I_hel(d)'])
+            a_bin=float(df_o.iloc[j]['a_bin(m)'])
+            e_bin=float(df_o.iloc[j]['e_bin'])
+            I_bin=float(df_o.iloc[j]['I_bin(d)'])
+            p_num=int(df_o.iloc[j]['e_bin_bin_num'])+3
 
-        # #---------------------------------------------------------------------------
-        # # Find objects that lie in the cold classical region:
-        # # binary objects
-        # # df_hel=pd.DataFrame(numpy.array([a_hel,e_hel,I_hel]).T,columns=['a_hel(AU)','e_hel','I_hel(d)'])
-        # df_hel=df_orb_all[['a_hel(AU)','e_hel','I_hel(d)']]
-        # df_hel=df_hel[(df_hel['a_hel(AU)']>a_min) & (df_hel['a_hel(AU)']<a_max)]
-        # df_hel=df_hel[(df_hel['I_hel(d)']>I_min) & (df_hel['I_hel(d)']<I_max)]
-        # df_hel=df_hel[(df_hel['e_hel']<(1.0-(q/df_hel['a_hel(AU)'])))]
-        # if len(df_hel)>0:
-        #     print 'There are {} cold classical binaries formed'.format(len(df_hel))
-        #     s1_2=ax1.scatter(df_hel['a_hel(AU)'],df_hel['e_hel'],c='r',marker='x',s=CC_size,zorder=2)
-        #     s2_2=ax2.scatter(df_hel['a_hel(AU)'],df_hel['I_hel(d)'],c='r',marker='x',s=CC_size,zorder=2)
-        # # repeat for single objects
-        # df_hel_single=pd.DataFrame(numpy.array([a_hel_single,e_hel_single,I_hel_single]).T,columns=['a_hel(AU)','e_hel','I_hel(d)'])
-        # df_hel_single=df_hel_single[(df_hel_single['a_hel(AU)']>a_min) & (df_hel_single['a_hel(AU)']<a_max)]
-        # df_hel_single=df_hel_single[(df_hel_single['I_hel(d)']>I_min) & (df_hel_single['I_hel(d)']<I_max)]
-        # df_hel_single=df_hel_single[(df_hel_single['e_hel']<(1.0-(q/df_hel_single['a_hel(AU)'])))]
-        # if len(df_hel_single)>0:
-        #     print 'There are {} cold classical singles formed'.format(len(df_hel_single))
-        #     s1_3=ax1.scatter(df_hel_single['a_hel(AU)'],df_hel_single['e_hel'],c='r',marker='x',s=CC_size)
-        #     s2_3=ax2.scatter(df_hel_single['a_hel(AU)'],df_hel_single['I_hel(d)'],c='r',marker='x',s=CC_size)
-        #
+            s1_0=ax1.scatter(a_hel,e_hel,color=colours[col_i],s=s2,marker=(p_num,1,0))#,alpha=0.5)
+            s2_0=ax2.scatter(a_hel,I_hel,color=colours[col_i],s=s2,marker=(p_num,1,0))#,alpha=0.5)
+            s3=ax3.scatter(a_bin,e_bin,color=colours[col_i],s=s2,marker=(p_num,1,0))#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
+            s4=ax4.scatter(a_bin,I_bin,color=colours[col_i],s=s2,marker=(p_num,1,0))#,alpha=0.5)
+
+        for j in range(len(df_o_CC)):
+            a_hel=float(df_o_CC.iloc[j]['a_hel(AU)'])
+            e_hel=float(df_o_CC.iloc[j]['e_hel'])
+            I_hel=float(df_o_CC.iloc[j]['I_hel(d)'])
+            a_bin=float(df_o_CC.iloc[j]['a_bin(m)'])
+            e_bin=float(df_o_CC.iloc[j]['e_bin'])
+            I_bin=float(df_o_CC.iloc[j]['I_bin(d)'])
+            p_num=int(df_o_CC.iloc[j]['e_bin_bin_num'])+3
+
+            # wide binaries in cold classical region
+            s1_0=ax1.scatter(a_hel,e_hel,color=colours[col_i],s=s2,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
+            s2_0=ax2.scatter(a_hel,I_hel,color=colours[col_i],s=s2,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
+            s3=ax3.scatter(a_bin,e_bin,color=colours[col_i],s=s2,marker=(p_num,1,0),edgecolor='k')#,label="t={}Myr, a_neptune={}AU".format(t,float(a_neptune[numpy.where(time==t)])))#,alpha=0.5)
+            s4=ax4.scatter(a_bin,I_bin,color=colours[col_i],s=s2,marker=(p_num,1,0),edgecolor='k')#,alpha=0.5)
+
         #---------------------------------------------------------------------------
         # Find semimajor axis of Neptune
         t_mask=numpy.where(time==t)
         print "sim time = {} Myr, a_neptune = {} AU".format(time[t_mask],a_planet[:,N_planet-1][t_mask])
         # ---------------------------------------------------------------------------
 
+
         col_i+=1
 
 ax3.legend()
+
+# # ELLIPSES
+# ylims=ax1.get_ylim()
+# xlims=ax1.get_xlim()
+# print xlims,ylims
+#
+# def ax_scale(val,lims):
+#     # return ((lims[1]-lims[0])*val)+lims[0]
+#     return (val-lims[0])/(lims[1]-lims[0])
+# def ax_scale_inv(val,lims):
+#     return ((lims[1]-lims[0])*val)+lims[0]
+#     # return (val-lims[0])/(lims[1]-lims[0])
+#
+# print ax_scale(numpy.array(xlims),numpy.array(xlims))
+# print ax_scale(numpy.array(ylims),numpy.array(ylims))
+#
+# print ax1.transData.transform((xlims[0], ylims[0]))
+# print ax1.transData.transform((xlims[1], ylims[1]))
+# ax1.set_xlim(xlims[0],xlims[1])
+# ax1.set_ylim(ylims[0],ylims[1])
+# size=10
+# # inv = ax1.transData.inverted()
+# zero=ax1.transData.transform((xlims[0], ylims[0]))
+# print "zero={}".format(zero)
+# zero=ax1.transData.inverted().transform(zero)
+# ax1.scatter(zero[0],zero[1],marker='+',color='k')
+#
+# # use the scale of display to set x and y axis scaling
+# print (xlims[0], ylims[0]),(xlims[1], ylims[1])
+# zero_0=ax1.transData.transform((xlims[0], ylims[0]))
+# zero_1=ax1.transData.transform((xlims[1], ylims[1]))
+# print "zeros",zero_0,zero_1
+# x_disp_scale=zero_1[0]-zero_0[0]
+# y_disp_scale=zero_1[1]-zero_0[1]
+# sizex_disp=20
+# for j in range(len(df_orb_all)):
+#     a=float(df_orb_all.iloc[j]['a_hel(AU)'])
+#     e=float(df_orb_all.iloc[j]['e_hel'])
+#     ae=(a,e)
+#
+#     sizey_disp=sizex_disp*numpy.sqrt(1.0-float(df_orb_all.iloc[j]['e_bin'])**2.0)
+#     # sizey_disp=sizex_disp*0.5
+#     # print float(df_orb_all.iloc[j]['e_bin']),sizex_disp,sizey_disp
+#     sizex=((xlims[1]-xlims[0])/(x_disp_scale))*sizex_disp
+#     sizey=((ylims[1]-ylims[0])/(y_disp_scale))*sizey_disp
+#
+#     wh=[sizex,sizey]
+#     print ae,wh
+#     ax1.scatter(ae[0],ae[1],marker='x',color='k')
+#     a=45#numpy.random.rand()*360
+#     # These work except when setting an angle
+#     # el=Ellipse(xy=ae, width=wh[0]*numpy.cos(a*(numpy.pi/180.0)), height=wh[1]*numpy.sin(a*(numpy.pi/180.0)), angle=a, facecolor="none", edgecolor='r')#,transform=ax1.transData)
+#     el=Ellipse(xy=ae, width=wh[0], height=wh[1], facecolor="none", edgecolor='r')#, angle=a)
+#
+#     # ae_disp=ax1.transData.transform(ae)
+#     # wh_disp=(sizex_disp,sizey_disp)
+#     # print ae_disp,wh_disp
+#     # el=Ellipse(xy=ae_disp, width=sizex_disp, height=sizey_disp,facecolor="none", edgecolor='r',transform=None)
+#
+#     # t2 = matplotlib.transforms.Affine2D().rotate_deg(-45) + ax1.transData
+#     # el.set_transform(el)
+#
+#     # # Try rotate the points
+#     # ax1.scatter(ae[0]+wh[0]/2.0,ae[1],marker='x',color='k')
+#     # ax1.scatter(ae[0]-wh[0]/2.0,ae[1],marker='x',color='k')
+#     #
+#     # a=a*(numpy.pi/180.0)
+#     # wh_disp=ax1.transData.transform(wh)
+#     # wh_disp[0]=wh_disp[0]*numpy.cos(a)
+#     # wh_disp[1]=wh_disp[1]*numpy.sin(a)
+#     # wh=ax1.transData.inverted().transform(wh_disp)
+#     #
+#     # ax1.scatter(ae[0]+(wh[0]/2.0),ae[1]+(wh[1]/2.0),marker='x',color='k')
+#     # ax1.scatter(ae[0]-(wh[0]/2.0),ae[1]-(wh[1]/2.0),marker='x',color='k')
+#
+#     # ax1.scatter(ae[0]+(wh[0]/2.0),ae[1]+(wh[0]/2.0)*numpy.sin(a),marker='x',color='k')
+#     # ax1.scatter(ae[0]-(wh[0]/2.0)*numpy.cos(a),ae[1]-(wh[0]/2.0)*numpy.sin(a),marker='x',color='k')
+#
+#     ax1.add_patch(el)
+#
+# # # Ellipse pos okay, can't get shape?
+# # for j in range(len(df_orb_all)):
+# #     a=float(df_orb_all.iloc[j]['a_hel(AU)'])
+# #     e=float(df_orb_all.iloc[j]['e_hel'])
+# #     ae=ax1.transData.transform((a, e))
+# #     wh=[size,size*numpy.sqrt(1-float(df_orb_all.iloc[j]['e_bin'])**2.0)]
+# #     print ae,wh
+# #     ae=ax1.transData.inverted().transform(ae)
+# #     ax1.scatter(ae[0],ae[1],marker='x',color='k')
+# #     el=Ellipse(xy=ae, width=1, height=0.05, color='r')
+# #     ax1.add_artist(el)
+#
+# # # Ellipse shape correct but offset?
+# # for j in range(len(df_orb_all)):
+# #     a=float(df_orb_all.iloc[j]['a_hel(AU)'])
+# #     e=float(df_orb_all.iloc[j]['e_hel'])
+# #     ae=ax1.transData.transform((a, e))
+# #     wh=[size,size*numpy.sqrt(1-float(df_orb_all.iloc[j]['e_bin'])**2.0)]
+# #     print ae,wh
+# #     el=Ellipse(xy=(ae[0],ae[1]), width=wh[0], height=wh[1], angle=numpy.random.rand()*360, color='r',transform=None)
+# #     ae=ax1.transData.inverted().transform(ae)
+# #     ax1.scatter(ae[0],ae[1],marker='x',color='k')
+# #     ax1.add_artist(el)
 
 # save and clear the figure for the next timestep
 save_path = '../analysis_dirs/{}/{}_figs/{}_{}_{:07d}.png'.format(run,os.path.basename(__file__).split('.')[0],os.path.basename(__file__).split('.')[0],run,int(fi.split('/')[-1].split('.')[0]))
