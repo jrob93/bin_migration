@@ -1,3 +1,9 @@
+'''
+make a summary image with all plots.
+
+NOTE: need to check this puts the right images together
+'''
+
 import numpy
 import matplotlib.pyplot as pyplot
 import os
